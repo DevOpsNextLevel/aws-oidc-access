@@ -1,0 +1,3 @@
+# AWSSSOUserAutomation
+
+An enterprise-grade solution for automating AWS Identity Center (SSO) user onboarding. This project leverages GitHub Actions to trigger S3 uploads of CSV files, AWS Lambda to process and provision new users, Slack for real-time notifications, and Amazon SES for sending email invitations. Designed as part of the WEBFORX suite, it streamlines and secures the onboarding process for federated access within our organization.
