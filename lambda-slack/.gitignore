@@ -1,0 +1,42 @@
+# Ignore __pycache__ and Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore pip virtual environment folders
+venv/
+.env/
+.venv/
+
+# Ignore macOS hidden files
+.DS_Store
+
+# Ignore AWS credential files (just in case)
+*.pem
+*.key
+*.crt
+.aws/
+
+# Ignore the requests layer if installed locally
+requests/
+python/
+*.dist-info/
+*.egg-info/
+.eggs/
+
+# Ignore deployment zips
+*.zip
+
+# Ignore log files
+*.log
+
+# Ignore test result caches
+.cache/
+.pytest_cache/
+

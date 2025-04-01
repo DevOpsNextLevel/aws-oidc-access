@@ -5,11 +5,11 @@ on:
     branches:
       - develop
     paths:
-      - 'data/students.csv'
+      - "data/employee.csv"
 
 jobs:
   upload-to-s3:
-    environment: AWS-Credentials  # Unlocks environment-scoped secrets
+    environment: AWS-Credentials # Unlocks environment-scoped secrets
     runs-on: ubuntu-latest
 
     steps:
@@ -33,4 +33,4 @@ jobs:
 
       - name: Upload students.csv to S3
         run: |
-          aws s3 cp data/students.csv s3://sso-user-creation-s3/students.csv
+          aws s3 cp data/students.csv s3://sso-user-creation-s3/employee.csv
