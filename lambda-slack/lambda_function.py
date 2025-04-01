@@ -10,8 +10,12 @@ s3 = boto3.client('s3')
 identitystore = boto3.client('identitystore')
 
 # Configuration values (update as needed)
-IDENTITY_STORE_ID = 'd-9067d1167c'  # Your Identity Store ID
-GROUP_ID = '645864e8-2041-7088-69b0-7517e985e781'  # Your Group ID
+IDENTITY_STORE_ID = 'd-9067c4bf6c'  # Your Identity Store ID
+GROUP_IDS = [
+    'e48854b8-e041-702a-99c8-5000c33268a0',  # GeneralGroup
+    '34682428-4061-70ab-ff37-757441475299',  # webforx-interns
+    'e4d83488-1081-7084-056c-c0435050d1c7'   # ReadOnly
+]
 SLACK_WEBHOOK_URL = os.environ['SLACK_WEBHOOK_URL']
 
 def send_slack_notification(message):
@@ -96,12 +100,14 @@ def lambda_handler(event, context):
             )
             user_id = user_response['UserId']
             
-            # Add the user to the specified group
-            identitystore.create_group_membership(
-                IdentityStoreId=IDENTITY_STORE_ID,
-                GroupId=GROUP_ID,
-                MemberId={'UserId': user_id}
-            )
+            # Add the user to each of the specified groups
+            for group_id in GROUP_IDS:
+                print(f"Adding user {username} to group {group_id}...")
+                identitystore.create_group_membership(
+                    IdentityStoreId=IDENTITY_STORE_ID,
+                    GroupId=group_id,
+                    MemberId={'UserId': user_id}
+                )
             
             created_users.append(username)
         

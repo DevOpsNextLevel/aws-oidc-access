@@ -1,0 +1,4 @@
+region:
+  dev: us-east-1
+  prod: us-east-1
+  management: us-east-1

@@ -33,4 +33,4 @@ jobs:
 
       - name: Upload students.csv to S3
         run: |
-          aws s3 cp data/students.csv s3://sso-user-creation-s3/employee.csv
+          aws s3 cp data/employee.csv s3://sso-user-creation-s3/employee.csv
