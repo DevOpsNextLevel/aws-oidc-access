@@ -12,13 +12,13 @@ variable "aws_region" {
 variable "tags" {
   type        = map(string)
   description = "Common tags"
-  default     = {
-    owner         = "Webforx Technology"
-    team          = "Webforx Team"
-    environment   = "dev"
-    project       = "webforx"
-    created_by    = "Terraform"
-    cloud_provider= "aws"
+  default = {
+    owner : "del-org"
+    team : "session11"
+    environment : "dev"
+    project : "aws-sso"
+    create_by : "Terraform"
+    cloud_provider : "aws"
   }
 }
 
@@ -26,11 +26,11 @@ variable "tags" {
 # Module: Lambda
 # -------------------------------------------------------------------
 module "lambda_user_sync" {
-  source                  = "../modules/lambda"
-  lambda_function_name    = "UserSyncLambda-${var.environment}"
+  source                    = "../modules/lambda"
+  lambda_function_name      = "aws-access-${var.environment}"
   lambda_s3_bucket_for_code = "your-lambda-code-bucket"
-  lambda_s3_key_for_code    = "code.zip"  # or a path to your packaged .zip
-  tags                    = var.tags
+  lambda_s3_key_for_code    = "code.zip" # or a path to your packaged .zip
+  tags                      = var.tags
 }
 
 # -------------------------------------------------------------------

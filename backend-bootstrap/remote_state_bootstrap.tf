@@ -1,10 +1,10 @@
 provider "aws" {
   region = "us-east-1"
-  allowed_account_ids = ["774305617666"]
+  allowed_account_ids = ["account_id"]
 }
 
 resource "aws_s3_bucket" "tf_state_bucket" {
-  bucket = "my-terraform-state-bucket"  # Change this to a globally unique name
+  bucket = "aws-sso-access-s11"  # Change this to a globally unique name
   acl    = "private"
 
   versioning {
@@ -20,14 +20,14 @@ resource "aws_s3_bucket" "tf_state_bucket" {
   }
 
   tags = {
-    Owner         = "Webforx Technology"
-    Environment   = "dev"
-    Project       = "webforx"
+    Owner         = "del-org"
+    environment = "dev"
+    project = "aws-sso"
   }
 }
 
 resource "aws_dynamodb_table" "tf_state_lock" {
-  name         = "tfstate-lock"
+  name         = "aws-sso-tfstate-lock"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
@@ -37,8 +37,8 @@ resource "aws_dynamodb_table" "tf_state_lock" {
   }
 
   tags = {
-    Owner         = "Webforx Technology"
+    Owner         = "del-org"
     Environment   = "dev"
-    Project       = "webforx"
+    Project       = "aws-sso"
   }
 }

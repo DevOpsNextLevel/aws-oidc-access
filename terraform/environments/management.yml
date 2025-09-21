@@ -1,7 +1,7 @@
 tags:
-  owner: "Webforx Technology"
-  team: "Webforx Team"
+  owner: "del-org"
+  team: "session11"
   environment: "dev"
-  project: "webforx"
+  project: "aws-sso"
   create_by: "Terraform"
   cloud_provider: "aws"
