@@ -10,6 +10,7 @@ This project automates the process of provisioning federated access for students
   - [Architecture](#architecture)
   - [Setup](#setup)
     - [AWS Configuration](#aws-configuration)
+    - [Add slack\_url to paramter store](#add-slack_url-to-paramter-store)
   - [GitHub Actions Workflow](#github-actions-workflow)
     - [Branch Protection \& PR Workflow](#branch-protection--pr-workflow)
   - [How It Works](#how-it-works)
@@ -110,6 +111,15 @@ graph TD;
   ]
 }
 ```
+
+### Add slack_url to paramter store
+```
+aws ssm put-parameter \
+  --name "/students/slack_webhook" \
+  --type "SecureString" \
+  --value "REMOVED"
+```
+
 
 *Note: You can scope down the resources later.*
 
