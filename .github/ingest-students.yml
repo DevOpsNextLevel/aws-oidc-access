@@ -1,0 +1,27 @@
+name: Ingest students CSV
+
+on:
+  push:
+    branches: [develop]
+    paths: [ "data/student.csv" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  upload-csv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE_ARN }}  # set this secret from TF output
+          aws-region: us-east-1
+
+      - name: Upload CSV to S3 (timestamped)
+        run: |
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          aws s3 cp data/student.csv s3://${{ secrets.CSV_BUCKET }}/students/run-$TS.csv

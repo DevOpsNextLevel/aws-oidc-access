@@ -1,7 +1,0 @@
-tags:
-  owner: "del-org"
-  team: "session11"
-  environment: "dev"
-  project: "aws-sso"
-  create_by: "Terraform"
-  cloud_provider: "aws"

@@ -1,0 +1,8 @@
+account_id        = "123456789012"
+repo_owner        = "YourGitHubOrgOrUser"
+repo_name         = "YourRepoName"
+csv_bucket_name   = "wf-students-csv-123abc"
+email_sender      = "no-reply@yourdomain.com"
+sso_instance_arn  = "arn:aws:sso:::instance/ssoins-xxxxxxxxxxxx"
+identity_store_id = "d-xxxxxxxxxx"
+target_account_id = "123456789012"

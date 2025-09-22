@@ -1,0 +1,31 @@
+name: Validate student.csv
+
+on:
+  pull_request:
+    branches: [develop]
+    paths: [ "data/student.csv" ]
+
+jobs:
+  lint-csv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate schema & duplicates
+        run: |
+          python - << 'PY'
+          import csv, sys, re
+          rows=list(csv.DictReader(open("data/student.csv")))
+          ok=True
+          seen_u=set(); seen_e=set()
+          for i,r in enumerate(rows, start=2): # header is line 1
+              user=r.get("username","").strip(); email=r.get("email","").strip()
+              first=r.get("first_name","").strip(); last=r.get("last_name","").strip()
+              if not user or not email or not first or not last:
+                  print(f"Line {i}: missing required fields"); ok=False
+              if not re.match(r"^[A-Za-z0-9._-]+$", user):
+                  print(f"Line {i}: invalid username"); ok=False
+              if user in seen_u: print(f"Line {i}: duplicate username"); ok=False
+              if email in seen_e: print(f"Line {i}: duplicate email"); ok=False
+              seen_u.add(user); seen_e.add(email)
+          sys.exit(0 if ok else 1)
+          PY
