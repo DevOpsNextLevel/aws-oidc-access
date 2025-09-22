@@ -10,7 +10,8 @@ terraform {
       version = ">= 2.4"
     }
   }
-  backend "s3" {} # (optional) fill if you want remote state
+
+  #  backend "s3" {} # (optional) fill if you want remote state
 }
 
 provider "aws" {

@@ -1,0 +1,58 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CallerIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadOnlyCoreInfra",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "elasticloadbalancing:Describe*",
+        "autoscaling:Describe*",
+        "rds:Describe*",
+        "eks:Describe*",
+        "eks:List*",
+        "ecr:Describe*",
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer",
+        "cloudwatch:Get*",
+        "cloudwatch:List*",
+        "cloudwatch:Describe*",
+        "logs:Describe*",
+        "logs:Get*",
+        "logs:List*",
+        "ssm:Describe*",
+        "ssm:Get*",
+        "ssm:List*",
+        "iam:List*",
+        "iam:Get*",
+        "route53:List*",
+        "route53:Get*",
+        "kms:List*",
+        "kms:Describe*",
+        "tag:GetResources",
+        "ce:Get*",
+        "ce:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "S3ListingOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketLocation",
+        "s3:ListBucket"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

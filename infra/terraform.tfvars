@@ -1,7 +1,7 @@
 account_id        = "108188564905"
 repo_owner        = "DEL-ORG"
 repo_name         = "aws-oidc-access"
-csv_bucket_name   = "s11-students-csv"
+csv_bucket_name   = "s11-students-csv-test"
 email_sender      = "godwill.ocheme86@gmail.com"
 sso_instance_arn  = "arn:aws:sso:::instance/ssoins-7223c48a93647173"
 identity_store_id = "d-9067d1167c"

@@ -5,19 +5,30 @@ locals {
   project_tag = "students-onboarding"
 }
 
-# ---------------------------
-# GitHub OIDC for Actions -> AWS
-# ---------------------------
-resource "aws_iam_openid_connect_provider" "github" {
+# ---------------------------------------------------------------------
+# GitHub OIDC for Actions -> AWS -- If creating a new Identity provider
+# ---------------------------------------------------------------------
+#resource "aws_iam_openid_connect_provider" "github" {
+#  url             = "https://token.actions.githubusercontent.com"
+#  client_id_list  = ["sts.amazonaws.com"]
+#  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+#}
+
+#---------------------
+# If there is already and existing Identity provider in the AWS account
+#---------------------------------------------------------------------
+data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
-  client_id_list   = ["sts.amazonaws.com"]
-  thumbprint_list  = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
 data "aws_iam_policy_document" "github_trust" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
-    principals { type = "Federated" identifiers = [aws_iam_openid_connect_provider.github.arn] }
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
+    }
+
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
@@ -34,7 +45,7 @@ data "aws_iam_policy_document" "github_trust" {
 resource "aws_iam_role" "github_ci" {
   name               = "github-ci-students"
   assume_role_policy = data.aws_iam_policy_document.github_trust.json
-  tags = { Project = local.project_tag }
+  tags               = { Project = local.project_tag }
 }
 
 data "aws_iam_policy_document" "github_ci_policy" {
@@ -66,11 +77,6 @@ resource "aws_s3_bucket" "csv" {
   tags   = { Project = local.project_tag, Owner = "Web Forx Technology Limited" }
 }
 
-resource "aws_s3_bucket_acl" "csv_acl" {
-  bucket = aws_s3_bucket.csv.id
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_versioning" "csv_ver" {
   bucket = aws_s3_bucket.csv.id
   versioning_configuration { status = "Enabled" }
@@ -87,9 +93,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "csv_enc" {
 # SQS (with DLQ) for durability/retries
 # ---------------------------
 resource "aws_sqs_queue" "dlq" {
-  name                       = local.dlq_name
-  message_retention_seconds  = 1209600 # 14 days
-  tags = { Project = local.project_tag }
+  name                      = local.dlq_name
+  message_retention_seconds = 1209600 # 14 days
+  tags                      = { Project = local.project_tag }
 }
 
 resource "aws_sqs_queue" "queue" {
@@ -107,7 +113,11 @@ data "aws_iam_policy_document" "sqs_from_s3" {
   statement {
     sid     = "AllowS3Send"
     actions = ["SQS:SendMessage"]
-    principals { type = "Service" identifiers = ["s3.amazonaws.com"] }
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+
     resources = [aws_sqs_queue.queue.arn]
     condition {
       test     = "ArnEquals"
@@ -127,7 +137,7 @@ resource "aws_s3_bucket_notification" "csv_to_sqs" {
   queue {
     queue_arn     = aws_sqs_queue.queue.arn
     events        = ["s3:ObjectCreated:*"]
-    filter_prefix = "${local.csv_prefix}"
+    filter_prefix = local.csv_prefix
   }
   depends_on = [aws_sqs_queue_policy.queue_policy]
 }
@@ -139,18 +149,30 @@ resource "aws_dynamodb_table" "user_provisioning" {
   name         = "user_provisioning"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "username"
-  attribute { name = "username" type = "S" }
+  attribute {
+    name = "username"
+    type = "S"
+  }
+
   tags = { Project = local.project_tag }
 }
 
 # ---------------------------
 # IAM Identity Center permission set (CustomPolicy)
 # ---------------------------
+# Create the permission set
 resource "aws_ssoadmin_permission_set" "custom" {
   name         = "CustomPolicy"
   instance_arn = var.sso_instance_arn
-  inline_policy = file("${path.module}/policies/custom_policy.json")
-  tags = { Project = local.project_tag }
+  session_duration = "PT4H"
+  description  = "Custom inline policy for student access"
+}
+
+# Attach the inline JSON policy
+resource "aws_ssoadmin_permission_set_inline_policy" "custom" {
+  instance_arn       = var.sso_instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.custom.arn
+  inline_policy      = file("${path.module}/policies/custom_policy.json")
 }
 
 # ---------------------------
@@ -165,11 +187,11 @@ data "archive_file" "lambda_zip" {
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-user-provisioner-role"
   assume_role_policy = jsonencode({
-    Version="2012-10-17",
-    Statement=[{
-      Effect="Allow",
-      Principal={ Service="lambda.amazonaws.com" },
-      Action="sts:AssumeRole"
+    Version = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow",
+      Principal = { Service = "lambda.amazonaws.com" },
+      Action    = "sts:AssumeRole"
     }]
   })
   tags = { Project = local.project_tag }
@@ -177,15 +199,15 @@ resource "aws_iam_role" "lambda_role" {
 
 data "aws_iam_policy_document" "lambda_policy" {
   statement {
-    actions = ["logs:CreateLogGroup","logs:CreateLogStream","logs:PutLogEvents"]
+    actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["*"]
   }
   statement {
-    actions   = ["s3:GetObject","s3:GetObjectVersion"]
+    actions   = ["s3:GetObject", "s3:GetObjectVersion"]
     resources = ["arn:aws:s3:::${var.csv_bucket_name}/${local.csv_prefix}*"]
   }
   statement {
-    actions   = ["sqs:ReceiveMessage","sqs:DeleteMessage","sqs:GetQueueAttributes"]
+    actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
     resources = [aws_sqs_queue.queue.arn]
   }
   statement {
@@ -208,16 +230,16 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = ["*"]
   }
   statement {
-    actions   = ["ses:SendEmail","ses:SendRawEmail"]
+    actions   = ["ses:SendEmail", "ses:SendRawEmail"]
     resources = ["*"]
   }
   statement {
-    actions = ["dynamodb:GetItem","dynamodb:PutItem"]
+    actions   = ["dynamodb:GetItem", "dynamodb:PutItem"]
     resources = [aws_dynamodb_table.user_provisioning.arn]
   }
   # Optional: read Slack webhook from SSM
   statement {
-    actions = ["ssm:GetParameter"]
+    actions   = ["ssm:GetParameter"]
     resources = ["arn:aws:ssm:${var.region}:${var.account_id}:parameter${var.slack_webhook_ssm_parameter}"]
   }
 }
@@ -256,21 +278,21 @@ resource "aws_lambda_function" "provisioner" {
 
 # Event source: SQS -> Lambda
 resource "aws_lambda_event_source_mapping" "sqs_to_lambda" {
-  event_source_arn = aws_sqs_queue.queue.arn
-  function_name    = aws_lambda_function.provisioner.arn
-  batch_size       = 5
+  event_source_arn                   = aws_sqs_queue.queue.arn
+  function_name                      = aws_lambda_function.provisioner.arn
+  batch_size                         = 5
   maximum_batching_window_in_seconds = 10
-  enabled          = true
+  enabled                            = true
 }
 
 # ---------------------------
 # SES Template (optional)
 # ---------------------------
 resource "aws_ses_template" "student_welcome" {
-  count = var.create_ses_template ? 1 : 0
-  name       = "StudentWelcome"
-  subject    = "Your AWS Lab Access"
-  html       = <<EOF
+  count   = var.create_ses_template ? 1 : 0
+  name    = "StudentWelcome"
+  subject = "Your AWS Lab Access"
+  html    = <<EOF
   <h3>Welcome to the AWS Lab</h3>
   <p>Hello {{first_name}},</p>
   <p>Your user <b>{{username}}</b> has been created.</p>
@@ -283,7 +305,7 @@ resource "aws_ses_template" "student_welcome" {
   </ol>
   <p>Thanks,<br/>Web Forx Technology Limited</p>
   EOF
-  text = <<EOF
+  text    = <<EOF
   Welcome to the AWS Lab
 
   Hello {{first_name}},
